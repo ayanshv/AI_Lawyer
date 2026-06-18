@@ -1,6 +1,7 @@
 import streamlit as st
 import pypdf
 from pdf_reader import extract_pdf
+from analyze import analyze_document
 
 st.set_page_config(
     page_title = "Rights AI",
@@ -10,11 +11,13 @@ st.set_page_config(
 st.title("_Rights AI_. Your companion in the :red[legal] world.")
 
 uploaded_pdf = st.file_uploader("Upload your legal document", type = "pdf")
-document_text = ""
 if uploaded_pdf is not None:
-    document_text = extract_pdf(uploaded_pdf)
+    with st.spinner("Extracting text..."):
+        document_info = extract_pdf(uploaded_pdf)
 
-    if document_text:
-        with st.spinner("Analyzing the document"):
-            st.markdown(document_text)
-
+    if document_info.strip():
+        with st.spinner("Analyzing the document..."):
+            document_analysis = analyze_document(document_info)
+            st.markdown(document_analysis)
+    else:
+        st.error("No readable text found in this PDF.")

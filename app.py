@@ -18,9 +18,25 @@ if "analysis_result" not in st.session_state:
    st.session_state.analysis_result = None
 
 
+st.markdown(
+    """
+    <style>
+    @import url('https://googleapis.com');
 
+    h1, h2, h3 {
+        font-family: 'Lobster', cursive !important;
+        font-weight: 400;
+        -webkit-text-stroke: 1.5px #000000; 
+        text-stroke: 1.5px #000000;
+        font-smooth: always;
+        -webkit-font-smoothing: antialiased;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
-st.title("_Rights AI_. Your companion in the :yellow[legal] world.")
+st.title("_Rights AI_. Your companion in the legal world.")
 
 
 user_question = st.chat_input("What is your inquiry?")
@@ -46,12 +62,10 @@ def open_camera():
    st.session_state.show_camera = True
 
 
-st.button("Take a picture of your legal document", on_click=open_camera)
+st.button("Take a picture of your legal document", on_click=open_camera, type = "primary")
 
 
 if st.session_state.show_camera:
-
-
    uploaded_camera_image = st.camera_input("Take a picture of your legal document")
    if uploaded_camera_image is not None:
        with st.spinner("Extracting text..."):

@@ -10,7 +10,7 @@ print("KEY PREFIX:", key[:4] if key else None)
 
 client = genai.Client(api_key=key)
 
-def analyze_document(document_info, user_question):
+def analyze_document(document_info, user_question, user_language):
     prompt = f"""
    You are RightsAI, an AI assistant that helps people understand legal and official documents in simple, clear language.
 
@@ -117,6 +117,12 @@ Do NOT claim something is illegal.
 ## USER QUESTION
 
 {user_question}
+
+## USER LANGUAGE
+
+{user_language}
+
+RESPOND IN THE USERS SELECTED LANGUAGE
 """
 
     response = client.models.generate_content(

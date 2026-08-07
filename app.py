@@ -529,6 +529,7 @@ if st.session_state.current_page == "home":
 # ==========================================
 elif st.session_state.current_page == "analyze":
     st.button("← Back to Home", on_click=go_to_home)
+    st.markdown('<script>window.scrollTo(0, 0);</script>', unsafe_allow_html=True)
 
     tab1, tab2 = st.tabs(["Analyze", "About us"])
 

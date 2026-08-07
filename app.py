@@ -30,7 +30,7 @@ icon_src = f"data:image/png;base64,{icon_base64}"
 
 
 st.set_page_config(
-    page_title="Amicus - Understand any legal document",
+    page_title="Amicus — Understand any legal document",
     page_icon="./AmicusIcon.ico",
     layout="centered",
     initial_sidebar_state="collapsed",

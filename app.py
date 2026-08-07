@@ -51,6 +51,7 @@ st.markdown(
     """
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@600;700;800&display=swap');
     @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
     :root {
@@ -281,17 +282,20 @@ st.markdown(
         position: relative !important;
         margin-top: 1rem !important; border-radius: 999px !important; border: none !important;
         background: #F6F4EF !important; color: #14141a !important;
-        font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; padding: 0.74rem 2rem !important;
+        font-family: 'Inter', sans-serif !important; font-weight: 800 !important; padding: 0.74rem 2rem !important;
         box-shadow: 0 18px 34px -14px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255,255,255,0.95) !important; transition: transform 0.15s ease !important;
         z-index: 10 !important;
     }
     
     [data-testid="stFileUploaderDropzone"] button:hover, [data-testid="stFileUploadDropzone"] button:hover { transform: translateY(-1px); }
-    [data-testid="stFileUploaderDropzone"] button p, [data-testid="stFileUploadDropzone"] button p { color: #14141a !important; font-weight: 800 !important; }
+    [data-testid="stFileUploaderDropzone"] button p, [data-testid="stFileUploadDropzone"] button p { color: #14141a !important; font-family: 'Inter', sans-serif !important; font-weight: 800 !important; }
 
     .stButton { display: flex; justify-content: center; }
+    .stButton > button, .stButton > button p {
+        font-family: 'Inter', sans-serif !important; font-weight: 700 !important; letter-spacing: 0.02em !important;
+    }
     .stButton > button {
-        border-radius: 999px !important; font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important;
+        border-radius: 999px !important;
         padding: 0.84rem 2rem !important; border: 1px solid var(--glass-border) !important;
         background: var(--glass-strong) !important; backdrop-filter: var(--blur);
         color: var(--ink) !important; transition: all 0.2s ease !important; width: auto; min-width: 260px;
@@ -306,7 +310,6 @@ st.markdown(
     }
     .stButton > button[kind="primary"] p { color: var(--bg) !important; } 
     .stButton > button[kind="primary"]:hover { filter: brightness(1.04); }
-    .stButton > button p { font-weight: 800 !important; color: inherit !important; }
 
     .or-divider { display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.12em; margin: 1.5rem 0; text-transform: uppercase; }
     .or-divider::before, .or-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
@@ -375,33 +378,42 @@ st.markdown(
         display: none !important;
     }
 
+    /* TIGHTER MOBILE OPTIMIZATION */
     @media (max-width: 640px) {
         .rai-nav {
-            padding: 6px 12px !important;
-            top: 10px !important;
-            width: calc(100% - 20px) !important;
+            padding: 4px 10px !important;
+            top: 6px !important;
+            width: calc(100% - 16px) !important;
         }
-        .rai-brand .mark { width: 32px !important; height: 32px !important; font-size: 0.85rem !important; }
-        .rai-brand .name { font-size: 1.05rem !important; }
-        .rai-cta .pill { padding: 7px 14px !important; font-size: 0.78rem !important; }
+        .rai-brand .mark { width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
+        .rai-brand .name { font-size: 0.95rem !important; }
 
         .block-container {
-            padding-top: 5.2rem !important;
-            padding-bottom: 7rem !important;
+            padding-top: 4.2rem !important;
+            padding-bottom: 4rem !important;
         }
 
-        .hero { padding: 2.2rem 1.2rem 1.8rem !important; border-radius: 26px !important; }
-        .hero h1 { font-size: 2.1rem !important; }
-        .hero-sub { font-size: 0.95rem !important; }
+        .hero { 
+            padding: 1.6rem 1rem 1.4rem !important; 
+            border-radius: 20px !important; 
+            margin: 0 auto 1rem !important;
+        }
+        .hero h1 { font-size: 1.75rem !important; margin: 0 0 0.6rem !important; }
+        .hero-sub { font-size: 0.85rem !important; margin: 0 auto 1rem !important; line-height: 1.4 !important; }
+        .glass-badge { margin-bottom: 0.8rem !important; padding: 5px 12px !important; font-size: 0.75rem !important; }
 
         .hero-stats {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
-            gap: 8px !important;
+            gap: 6px !important;
+            margin-top: 0.2rem !important;
         }
-        .stat { min-width: unset !important; padding: 10px 6px !important; }
-        .stat .n { font-size: 1.2rem !important; }
-        .stat .l { font-size: 0.68rem !important; }
+        .stat { min-width: unset !important; padding: 8px 4px !important; border-radius: 14px !important; }
+        .stat .n { font-size: 1.1rem !important; }
+        .stat .l { font-size: 0.6rem !important; }
+
+        .marquee { margin: 1rem 0 0 !important; }
+        .chip { padding: 6px 12px !important; font-size: 0.8rem !important; }
 
         [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 1.2rem 1rem !important;
@@ -425,7 +437,7 @@ st.markdown(
 st.markdown(
     """
     <div class="rai-nav">
-        <div class="rai-brand">
+        <div class="rai-brand" onclick="window.parent.postMessage('go_home', '*');">
             <div class="mark"><i class="fa-solid fa-scale-balanced"></i></div>
             <div class="name">Amicus</div>
         </div>
@@ -450,8 +462,7 @@ if st.session_state.current_page == "home":
             <div class="hero-inner">
                 <div class="glass-badge"><i class="fa-solid fa-globe"></i> Understand your rights in 65+ languages</div>
                 <h1>Your companion<br><span class="soft">in the legal world.</span></h1>
-                <p class="hero-sub">Amicus turns confusing legal documents into clear, plain-language
-                guidance — so language is never a barrier to your safety, protection, and peace of mind.</p>
+                <p class="hero-sub">Amicus turns confusing legal documents into clear, plain-language guidance — so language is never a barrier.</p>
                 <div class="hero-stats">
                     <div class="stat"><span class="n">65+</span><span class="l">Languages</span></div>
                     <div class="stat"><span class="n">20 MB</span><span class="l">PDF or photo</span></div>
@@ -464,14 +475,6 @@ if st.session_state.current_page == "home":
                     <span class="chip"><i class="fa-solid fa-briefcase"></i> Employment contracts</span>
                     <span class="chip"><i class="fa-solid fa-passport"></i> Immigration forms</span>
                     <span class="chip"><i class="fa-solid fa-file-signature"></i> Terms of service</span>
-                    <span class="chip"><i class="fa-solid fa-scroll"></i> Court notices</span>
-                    <span class="chip"><i class="fa-solid fa-hand-holding-dollar"></i> Loan documents</span>
-                    <span class="chip"><i class="fa-solid fa-house-chimney"></i> Lease agreements</span>
-                    <span class="chip"><i class="fa-solid fa-briefcase"></i> Employment contracts</span>
-                    <span class="chip"><i class="fa-solid fa-passport"></i> Immigration forms</span>
-                    <span class="chip"><i class="fa-solid fa-file-signature"></i> Terms of service</span>
-                    <span class="chip"><i class="fa-solid fa-scroll"></i> Court notices</span>
-                    <span class="chip"><i class="fa-solid fa-hand-holding-dollar"></i> Loan documents</span>
                 </div>
             </div>
         </section>
@@ -479,8 +482,7 @@ if st.session_state.current_page == "home":
         unsafe_allow_html=True,
     )
 
-    st.write("")
-    col1, col2, col3 = st.columns([1, 2, 1])
+    col1, col2, col3 = st.columns([0.5, 3, 0.5])
     with col2:
         st.button(
             "Go to Analysis Tool →", 
@@ -550,7 +552,7 @@ elif st.session_state.current_page == "analyze":
                         "Filipino (Filipino)", "Icelandic (Íslenska)", "Amharic (አማርኛ)",
                         "Armenian (Հայերեն)", "Azerbaijani (Azərbaycan dili)", "Basque (Euskara)",
                         "Galician (Galego)", "Georgian (ქართული)", "Kazakh (Қазақ тілі)",
-                        "Khmer (ខ្មែរ)", "Lao (ລາວ)", "Macedonian (Македонски)", "Mongolian (Монгол)",
+                        "Khmer (ខ្Khmer)", "Lao (ລາວ)", "Macedonian (Македонски)", "Mongolian (Монгол)",
                         "Nepali (नेपाली)", "Sinhala (සිංහල)", "Albanian (Shqip)", "Bosnian (Bosanski)",
                         "Uzbek (Oʻzbekcha)", "Zulu (isiZulu)", "Afrikaans (Afrikaans)",
                     ),

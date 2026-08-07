@@ -2,6 +2,7 @@ from google import genai
 import os
 from dotenv import load_dotenv
 
+
 load_dotenv()
 
 key = os.getenv("GEMINI_API_KEY")
@@ -106,6 +107,7 @@ Use cautious wording such as:
 
 Do NOT claim something is illegal.
 
+DO NOT USE 
 ---
 
 ## DOCUMENT TEXT
@@ -130,3 +132,4 @@ RESPOND IN THE USERS SELECTED LANGUAGE
             contents=prompt
         )
     return response.text
+

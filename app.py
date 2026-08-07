@@ -1,343 +1,657 @@
 import streamlit as st
-import pypdf
-from pdf_reader import extract_pdf
-from analyze import analyze_document
-from text_extract import extract_text_from_image
 
+try:
+    from pdf_reader import extract_pdf
+    from analyze import analyze_document
+    from text_extract import extract_text_from_image
 
-logo_path = "RightsAI.png"
+    _BACKEND_AVAILABLE = True
+except Exception:
+    _BACKEND_AVAILABLE = False
+
+    def extract_pdf(_file):
+        return ""
+
+    def analyze_document(_info, _question, _language):
+        return ""
+
+    def extract_text_from_image(_image):
+        return ""
+
 
 st.set_page_config(
-  page_title="Rights AI",
-  page_icon=logo_path,
-  layout="centered",
-  initial_sidebar_state="collapsed"
+    page_title="Amicus — Understand any legal document",
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
-
 
 if "show_camera" not in st.session_state:
-  st.session_state.show_camera = False
+    st.session_state.show_camera = False
 if "saved_question" not in st.session_state:
-  st.session_state.saved_question = ""
-if "analysis_result" not in st.session_state:
-  st.session_state.analysis_result = None
-
+    st.session_state.saved_question = ""
 
 st.markdown(
-   """
-   <style>
-  
-   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap');
-   @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+    """
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
 
+    :root {
+        
+        --bg: #FCFAF5;
+        --bg-2: #F3EFE6;
+        
+        
+        --ink: #0F1D38;
+        --slate: #3E4F6D;
+        --muted: #8290A6;
+        
+        
+        --accent: #16305C;
+        --accent-2: #2C508D;
+        
+        
+        --line: rgba(15, 29, 56, 0.08); /* Faint navy lines */
+        --glass: linear-gradient(155deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.3));
+        --glass-strong: linear-gradient(155deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.5));
+        --glass-border: rgba(255, 255, 255, 0.7);
+        --glass-hi: inset 0 2px 0 rgba(255, 255, 255, 0.9);
+        
+        
+        --glass-shadow: 0 30px 60px -20px rgba(15, 29, 56, 0.12);
+        
+        
+        --blur: blur(40px) saturate(180%);
+        --blur-nav: blur(52px) saturate(190%);
+    }
 
-  
-   h1, h2, h3 {
-       font-family: 'Playfair Display', serif !important;
-       color: #1E3A8A;
-       margin-bottom: 0.5rem;
-   }
+    #MainMenu, footer, [data-testid="stToolbar"] { visibility: hidden; }
+    [data-testid="stHeader"] { background: transparent !important; height: 0 !important; }
+    [data-testid="stDecoration"] { display: none !important; }
 
+    .stApp,
+    [data-testid="stAppViewContainer"] {
+        background-color: var(--bg) !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        color: var(--ink) !important;
+    }
 
-  
-   [data-testid="stAppViewContainer"] {
-       background-color: #FFFFFF !important;
-       background-image:
-           radial-gradient(circle at 5% 15%, rgba(30, 58, 138, 0.20) 0%, transparent 50%),
-           radial-gradient(circle at 95% 75%, rgba(30, 58, 138, 0.15) 0%, transparent 60%) !important;
-       background-attachment: fixed !important;
-   }
+    [data-testid="stAppViewContainer"]::before {
+        content: ""; position: fixed; inset: -20% -10% -10% -10%; z-index: 0; pointer-events: none;
+        background:
+            radial-gradient(42% 38% at 14% 8%, rgba(22, 48, 92, 0.05) 0%, transparent 60%),
+            radial-gradient(40% 40% at 88% 2%, rgba(200, 180, 140, 0.08) 0%, transparent 62%),
+            radial-gradient(48% 44% at 78% 92%, rgba(22, 48, 92, 0.06) 0%, transparent 60%),
+            radial-gradient(60% 50% at 10% 100%, rgba(200, 180, 140, 0.06) 0%, transparent 60%);
+        filter: blur(20px);
+        animation: aurora 26s ease-in-out infinite alternate;
+    }
+    @keyframes aurora {
+        0%   { transform: translate3d(0, 0, 0) scale(1); }
+        50%  { transform: translate3d(-2.5%, 2%, 0) scale(1.08); }
+        100% { transform: translate3d(2.5%, -1.5%, 0) scale(1.04); }
+    }
 
+    .block-container {
+        position: relative; z-index: 1;
+        padding-top: 6.6rem !important;
+        padding-bottom: 8rem !important;
+        max-width: 968px !important;
+    }
 
-  
-   [data-testid="stHeader"] {
-       background-color: transparent !important;
-   }
+    h1, h2, h3, h4 { font-family: 'Fraunces', serif !important; color: var(--ink) !important; letter-spacing: -0.02em; }
+    p, li, label, .stMarkdown { font-family: 'Plus Jakarta Sans', sans-serif !important; color: var(--slate) !important; line-height: 1.65; }
+    strong, b { color: var(--ink) !important; }
 
+    .rai-nav {
+        position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+        width: min(1120px, calc(100% - 26px)); z-index: 1000;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 12px 10px 20px; border-radius: 999px;
+        background: var(--glass-strong);
+        backdrop-filter: var(--blur-nav); -webkit-backdrop-filter: var(--blur-nav);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-hi);
+    }
+    .rai-brand { display: flex; align-items: center; gap: 12px; }
+    .rai-brand .mark {
+        width: 38px; height: 38px; border-radius: 12px;
+        background: linear-gradient(150deg, var(--accent), #bf9a55);
+        display: flex; align-items: center; justify-content: center; color: #241a06; font-size: 1rem;
+        box-shadow: 0 12px 24px -10px rgba(231, 198, 142, 0.8), inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+    .rai-brand .name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.3rem; color: var(--ink); letter-spacing: -0.01em; }
+    .rai-links { display: flex; gap: 30px; }
+    .rai-links a { color: var(--slate); text-decoration: none; font-size: 0.94rem; font-weight: 600; transition: color 0.15s ease; }
+    .rai-links a:hover { color: var(--ink); }
+    .rai-cta .pill {
+        background: linear-gradient(150deg, var(--accent-2), var(--accent)); 
+        color: var(--bg); /* Changed to cream */
+        text-decoration: none;
+        padding: 11px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem;
+        box-shadow: 0 16px 30px -12px rgba(22, 48, 92, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+        transition: transform 0.15s ease;
+    }
+    .rai-cta .pill:hover { transform: translateY(-1px); }
+    @media (max-width: 860px) { .rai-links { display: none; } }
 
-  
-   .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-       font-family: 'Playfair Display', serif !important;
-       font-size: 1.2rem;
-       font-weight: 600;
-   }
+    .hero {
+        position: relative; margin: 0.2rem auto 2.6rem; padding: 3.4rem 2rem 2.8rem;
+        border-radius: 38px; text-align: center; overflow: hidden;
+        background: var(--glass);
+        backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--glass-shadow), var(--glass-hi);
+    }
+    .hero::before {
+        content: ""; position: absolute; inset: -60% -20% auto -20%; height: 90%;
+        background: radial-gradient(50% 60% at 26% 0%, rgba(231,198,142,0.28), transparent 70%),
+                    radial-gradient(48% 60% at 82% 4%, rgba(210,224,255,0.22), transparent 70%);
+        pointer-events: none; animation: aurora 22s ease-in-out infinite alternate;
+    }
+    .hero-inner { position: relative; z-index: 1; }
+    .glass-badge {
+        display: inline-flex; align-items: center; gap: 9px; padding: 8px 18px; border-radius: 999px;
+        background: var(--glass-strong); backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border); color: var(--ink); font-weight: 700; font-size: 0.84rem;
+        margin-bottom: 1.7rem; box-shadow: 0 14px 30px -20px rgba(0,0,0,0.7), var(--glass-hi);
+    }
+    .glass-badge i { color: var(--accent); }
+    .hero h1 { font-size: clamp(2.6rem, 6vw, 4.3rem) !important; line-height: 1.02 !important; font-weight: 700 !important; margin: 0 0 1.1rem !important; color: var(--ink) !important; }
+    .hero h1 .soft {
+        font-style: italic;
+        background: linear-gradient(120deg, var(--accent-2), var(--accent));
+        -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .hero-sub { 
+        font-size: 1.16rem !important; 
+        color: var(--slate) !important; 
+        max-width: 660px !important; 
+        margin: 0 auto 2rem !important; /* !important forces the block to center */
+        text-align: center !important;  /* Centers the text inside the block */
+        line-height: 1.62 !important; 
+    }
 
+    .hero-stats { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 0.4rem; }
+    .stat {
+        display: flex; flex-direction: column; gap: 2px; padding: 15px 26px; border-radius: 20px; min-width: 132px;
+        background: var(--glass-strong); backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border); box-shadow: 0 20px 44px -30px rgba(0,0,0,0.8), var(--glass-hi);
+    }
+    .stat .n { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.6rem; color: var(--ink); }
+    .stat .l { font-size: 0.8rem; color: var(--muted); font-weight: 600; letter-spacing: 0.02em; }
 
-   [data-testid="stFileUploadDropzone"] {
-       border-radius: 12px;
-       border: 2px dashed #94A3B8;
-       background-color: #F8FAFC;
-       padding: 2rem;
-   }
-  
-   .stButton > button {
-       border-radius: 8px;
-   }
+    .marquee { position: relative; margin: 2.4rem 0 0; padding: 0.3rem 0; overflow: hidden; border-radius: 16px; -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%); mask-image: linear-gradient(90deg, transparent 0%, #000 14%, #000 86%, transparent 100%); }
+    .marquee-track { display: flex; gap: 14px; width: max-content; animation: scrollx 30s linear infinite; }
+    .marquee:hover .marquee-track { animation-play-state: paused; }
+    .chip {
+        display: inline-flex; align-items: center; gap: 9px; padding: 10px 18px; border-radius: 999px; white-space: nowrap;
+        background: var(--glass-strong); backdrop-filter: var(--blur); border: 1px solid var(--glass-border);
+        color: var(--ink); font-weight: 600; font-size: 0.9rem; box-shadow: var(--glass-hi);
+    }
+    .chip i { color: var(--accent); }
+    @keyframes scrollx { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-   [data-testid="stBottom"] {
-       background-color: transparent !important;
-   }
+    .scroll-cue { display: inline-flex; align-items: center; gap: 8px; margin-top: 1.9rem; color: var(--muted); font-size: 0.82rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+    .scroll-cue i { animation: bob 1.8s ease-in-out infinite; color: var(--accent); }
+    @keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 
-   
-   [data-testid="stBottom"] > div {
-       background: rgba(255, 255, 390, 0.6) !important;
-       backdrop-filter: blur(12px) !important;
-       -webkit-backdrop-filter: blur(12px) !important;
-       border-top: 1px solid rgba(30, 58, 138, 0.1) !important;
-   }
+    .eyebrow { text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.75rem; font-weight: 800; color: var(--accent); font-family: 'Plus Jakarta Sans', sans-serif; margin-bottom: 0.4rem; }
+    .sec-title { font-family: 'Fraunces', serif; font-size: 2.35rem; color: var(--ink); font-weight: 700; margin: 0 0 0.4rem; }
+    .sec-sub { color: var(--slate); font-size: 1.05rem; margin-bottom: 1.4rem; }
 
-   .stTabs [data-baseweb="tab-list"] {
-       gap: 8px;
-       background-color: #F1F5F9 !important; /* Soft slate gray */
-       border-radius: 12px;
-       padding: 6px;
-       border: none !important;
-       display: inline-flex; /* Prevents it from stretching the full width if you don't want it to */
-   }
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: var(--glass) !important;
+        backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border) !important;
+        border-radius: 34px !important;
+        box-shadow: var(--glass-shadow), var(--glass-hi) !important;
+        padding: 2rem 2rem 1.8rem !important;
+    }
 
-   .stTabs [data-baseweb="tab"] {
-       border-radius: 8px !important;
-       padding: 10px 24px !important;
-       height: auto !important;
-       border: none !important;
-       background-color: transparent !important;
-       color: #64748B !important; /* Muted gray for inactive tabs */
-       font-family: 'Inter', sans-serif !important;
-       font-weight: 600 !important;
-       font-size: 1rem !important;
-       transition: all 0.2s ease-in-out !important;
-   }
+    .card-head { display: flex; align-items: center; gap: 12px; }
+    .card-head .icon {
+        width: 44px; height: 44px; border-radius: 14px; background: var(--glass-strong); backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+    }
+    .card-head .t { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.5rem; color: var(--ink); }
 
-   .stTabs [data-baseweb="tab"]:hover {
-       color: #0F172A !important;
-       background-color: rgba(0, 0, 0, 0.04) !important;
-   }
+    [data-baseweb="select"] > div {
+        border-radius: 999px !important; border: 1px solid var(--glass-border) !important;
+        background: var(--glass-strong) !important; backdrop-filter: var(--blur); min-height: 48px;
+        box-shadow: var(--glass-hi);
+    }
+    [data-baseweb="select"] div { color: var(--ink) !important; }
+    [data-baseweb="popover"] { backdrop-filter: var(--blur); }
+    label[data-testid="stWidgetLabel"] { display: none !important; }
 
-   .stTabs [aria-selected="true"] {
-       background-color: #FFFFFF !important;
-       color: #1E3A8A !important; /* Your navy brand color */
-       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-   }
-   
-   .stTabs [data-baseweb="tab-highlight"] {
-       display: none !important;
-   }
+    [data-testid="stFileUploader"] { 
+        margin-top: 0.5rem; 
+    }
+    [data-testid="stFileUploaderDropzone"], [data-testid="stFileUploadDropzone"] {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        min-height: 280px !important; /* Prevents container from collapsing */
+        border-radius: 28px !important;
+        border: 2px dashed rgba(255, 255, 255, 0.22) !important;
+        background: linear-gradient(155deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015)) !important; 
+        backdrop-filter: var(--blur);
+        padding: 2rem !important; 
+        transition: all 0.25s ease !important;
+        box-shadow: var(--glass-hi) !important;
+    }
+    
+    [data-testid="stFileUploaderDropzone"]:hover, [data-testid="stFileUploadDropzone"]:hover {
+        border-color: var(--accent) !important; transform: translateY(-2px);
+        box-shadow: 0 34px 66px -34px rgba(0, 0, 0, 0.85), var(--glass-hi) !important;
+    }
 
-   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;600&display=swap');
-   @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css');
+    /* Target Streamlit's hidden internal wrappers to stack vertically */
+    [data-testid="stFileUploaderDropzone"] > div, 
+    [data-testid="stFileUploadDropzone"] > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        width: 100% !important;
+    }
 
-   .block-container {
-       padding-top: 3rem !important;
-       padding-bottom: 6rem !important;
-       max-width: 850px !important;
-   }
+    [data-testid="stFileUploaderDropzone"]::before, [data-testid="stFileUploadDropzone"]::before {
+        content: "\\f0ee"; font-family: "Font Awesome 6 Free"; font-weight: 900;
+        display: flex; align-items: center; justify-content: center;
+        width: 74px; height: 74px; margin-bottom: 0.8rem; border-radius: 999px;
+        background: var(--glass-strong); backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border); color: var(--accent); font-size: 1.8rem;
+        box-shadow: 0 18px 34px -18px rgba(0, 0, 0, 0.8), var(--glass-hi);
+    }
+    
+    [data-testid="stFileUploaderDropzone"] svg,
+    [data-testid="stFileUploadDropzone"] svg { display: none !important; }
+    
+    /* Ensure text elements stack cleanly */
+    [data-testid="stFileUploaderDropzoneInstructions"],
+    [data-testid="stFileDropzoneInstructions"] { 
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important; 
+        gap: 0.3rem !important;
+    }
+    
+    [data-testid="stFileUploaderDropzoneInstructions"] span,
+    [data-testid="stFileDropzoneInstructions"] span { 
+        font-family: 'Fraunces', serif !important; font-weight: 700 !important; font-size: 1.5rem !important; color: var(--ink) !important; 
+        display: block !important;
+    }
+    
+    [data-testid="stFileUploaderDropzoneInstructions"] small,
+    [data-testid="stFileDropzoneInstructions"] small { 
+        font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 0.98rem !important; color: var(--muted) !important; 
+        display: block !important;
+    }
+    
+    
+    [data-testid="stFileUploaderDropzone"] button, [data-testid="stFileUploadDropzone"] button {
+        position: relative !important;
+        margin-top: 1rem !important; border-radius: 999px !important; border: none !important;
+        background: #F6F4EF !important; color: #14141a !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important; padding: 0.74rem 2rem !important;
+        box-shadow: 0 18px 34px -14px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255,255,255,0.95) !important; transition: transform 0.15s ease !important;
+        z-index: 10 !important;
+    }
+    
+    [data-testid="stFileUploaderDropzone"] button:hover, [data-testid="stFileUploadDropzone"] button:hover { transform: translateY(-1px); }
+    [data-testid="stFileUploaderDropzone"] button p, [data-testid="stFileUploadDropzone"] button p { color: #14141a !important; font-weight: 800 !important; }
 
-   h1, h2, h3 {
-       font-family: 'Playfair Display', serif !important;
-       color: #1E3A8A;
-       margin-bottom: 0.5rem;
-   }
+    .stButton { display: flex; justify-content: center; }
+    .stButton > button {
+        border-radius: 999px !important; font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800 !important;
+        padding: 0.84rem 2rem !important; border: 1px solid var(--glass-border) !important;
+        background: var(--glass-strong) !important; backdrop-filter: var(--blur);
+        color: var(--ink) !important; transition: all 0.2s ease !important; width: auto; min-width: 260px;
+        box-shadow: var(--glass-hi) !important;
+    }
+    .stButton > button:hover { transform: translateY(-1px); box-shadow: 0 22px 40px -20px rgba(0,0,0,0.75), var(--glass-hi) !important; border-color: var(--accent) !important; }
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(150deg, var(--accent-2), var(--accent)) !important; 
+        border-color: transparent !important; 
+        color: var(--bg) !important; 
+        box-shadow: 0 20px 38px -16px rgba(22, 48, 92, 0.4), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+    }
+    .stButton > button[kind="primary"] p { color: var(--bg) !important; } 
+    .stButton > button[kind="primary"]:hover { filter: brightness(1.04); }
+    .stButton > button p { font-weight: 800 !important; color: inherit !important; }
 
-   [data-testid="stAppViewContainer"] {
-       background-color: #FFFFFF !important;
-       background-image:
-           radial-gradient(circle at 5% 15%, rgba(30, 58, 138, 0.20) 0%, transparent 50%),
-           radial-gradient(circle at 95% 75%, rgba(30, 58, 138, 0.15) 0%, transparent 60%) !important;
-       background-attachment: fixed !important;
-   }
+    .or-divider { display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 0.82rem; font-weight: 700; letter-spacing: 0.12em; margin: 1.5rem 0; text-transform: uppercase; }
+    .or-divider::before, .or-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
 
-   [data-testid="stHeader"] {
-       background-color: transparent !important;
-   }
+    [data-testid="stAlert"] {
+        border-radius: 18px !important; border: 1px solid var(--glass-border) !important;
+        background: var(--glass-strong) !important; backdrop-filter: var(--blur);
+        box-shadow: var(--glass-hi) !important; color: var(--ink) !important;
+    }
+    [data-testid="stAlert"] p { color: var(--ink) !important; }
 
-   [data-testid="stFileUploadDropzone"] {
-       border-radius: 12px;
-       border: 2px dashed #94A3B8;
-       background-color: #F8FAFC;
-       padding: 2rem;
-   }
-  
-   .stButton > button {
-       border-radius: 8px;
-   }
+    [data-testid="stExpander"] {
+        border-radius: 18px !important; border: 1px solid var(--glass-border) !important;
+        background: var(--glass) !important; backdrop-filter: var(--blur);
+        margin-bottom: 0.7rem; overflow: hidden; box-shadow: var(--glass-hi);
+    }
+    [data-testid="stExpander"] summary { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 700 !important; color: var(--ink) !important; padding: 0.5rem 0.3rem; }
+    [data-testid="stExpander"] summary:hover { color: var(--accent) !important; }
 
-   [data-testid="stBottom"] {
-       background-color: transparent !important;
-   }
+    [data-testid="stBottom"] {
+        /* Blends the bottom bar into the parchment background */
+        background: linear-gradient(to top, var(--bg) 40%, rgba(245, 242, 235, 0.8) 80%, transparent 100%) !important;
+        backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+    [data-testid="stBottom"] > div { background: transparent !important; }
+    [data-testid="stBottomBlockContainer"] { max-width: 760px !important; margin: 0 auto !important; padding-bottom: 1.4rem !important; padding-top: 0.6rem !important; }
+    [data-testid="stChatInput"] {
+        background: var(--glass-strong) !important; backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border) !important; border-radius: 999px !important;
+        box-shadow: var(--glass-shadow), var(--glass-hi) !important;
+    }
+    [data-testid="stChatInput"] textarea { color: var(--ink) !important; }
+    [data-testid="stChatInput"] textarea::placeholder { color: var(--muted) !important; }
+    [data-testid="stChatInput"] button { background: linear-gradient(150deg, var(--accent-2), var(--accent)) !important; border: none !important; }
+    [data-testid="stChatInput"] button svg { color: #241a06 !important; fill: #241a06 !important; }
 
-   [data-testid="stBottom"] > div {
-       background: rgba(255, 255, 255, 0.6) !important;
-       backdrop-filter: blur(12px) !important;
-       -webkit-backdrop-filter: blur(12px) !important;
-       border-top: 1px solid rgba(30, 58, 138, 0.1) !important;
-   }
+    [data-baseweb="tab-list"] { gap: 8px; background: transparent !important; border-bottom: none !important; }
+    [data-baseweb="tab"] {
+        border-radius: 999px !important; padding: 8px 20px !important;
+        background: var(--glass) !important; backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border) !important; color: var(--slate) !important;
+    }
+    [data-baseweb="tab"][aria-selected="true"] { background: var(--glass-strong) !important; color: var(--ink) !important; }
+    [data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display: none !important; }
+    [data-baseweb="tab"] p { color: inherit !important; font-weight: 700 !important; }
 
-   .stTabs [data-baseweb="tab-list"] {
-       gap: 8px;
-       background-color: #F1F5F9 !important;
-       border-radius: 12px;
-       padding: 6px;
-       border: none !important;
-       display: inline-flex;
-   }
+    .trust-pill {
+        display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center;
+        color: var(--slate); background: var(--glass); backdrop-filter: var(--blur);
+        border: 1px solid var(--glass-border); border-radius: 18px; padding: 16px 22px;
+        margin: 1.5rem auto 0.4rem; max-width: 720px; font-size: 0.95rem;
+        box-shadow: var(--glass-hi);
+    }
+    .trust-pill b { color: var(--ink); }
+    .trust-pill i { color: var(--accent); font-size: 1.1rem; }
 
-   .stTabs [data-baseweb="tab"] {
-       border-radius: 8px !important;
-       padding: 10px 24px !important;
-       height: auto !important;
-       border: none !important;
-       background-color: transparent !important;
-       color: #64748B !important;
-       font-family: 'Inter', sans-serif !important;
-       font-weight: 600 !important;
-       font-size: 1rem !important;
-       transition: all 0.2s ease-in-out !important;
-   }
+    .uc-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 0.5rem 0 1rem; }
+    @media (max-width: 720px) { .uc-grid { grid-template-columns: 1fr; } }
+    .uc-card {
+        background: var(--glass); backdrop-filter: var(--blur); border: 1px solid var(--glass-border); border-radius: 22px;
+        padding: 1.6rem; box-shadow: var(--glass-shadow), var(--glass-hi); transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .uc-card:hover { transform: translateY(-4px); box-shadow: 0 34px 60px -32px rgba(0, 0, 0, 0.9), var(--glass-hi); }
+    .uc-card .uc-ic { width: 46px; height: 46px; border-radius: 14px; background: var(--glass-strong); backdrop-filter: var(--blur); border: 1px solid var(--glass-border); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.1rem; margin-bottom: 0.9rem; }
+    .uc-card h4 { font-family: 'Plus Jakarta Sans', sans-serif !important; font-weight: 800; color: var(--ink) !important; font-size: 1.05rem; margin: 0 0 0.4rem; }
+    .uc-card p { font-size: 0.92rem; color: var(--slate); margin: 0; }
 
-   .stTabs [data-baseweb="tab"]:hover {
-       color: #0F172A !important;
-       background-color: rgba(0, 0, 0, 0.04) !important;
-   }
+    .rai-section { margin-top: 3.8rem; }
+    .site-footer { text-align: center; color: var(--muted); font-size: 0.84rem; margin-top: 3.8rem; line-height: 1.7; }
 
-   .stTabs [aria-selected="true"] {
-       background-color: #FFFFFF !important;
-       color: #1E3A8A !important;
-       box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-   }
-   
-   .stTabs [data-baseweb="tab-highlight"] {
-       display: none !important;
-   }
-
-}
-   </style>
-   """,
-   unsafe_allow_html=True
+    @keyframes floatUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+    .hero, .rai-section { animation: floatUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    @media (prefers-reduced-motion: reduce) { .hero, .rai-section, .marquee-track, .scroll-cue i, [data-testid="stAppViewContainer"]::before, .hero::before { animation: none; } }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
-user_question = st.chat_input("What is your inquiry?")
-if user_question:
-   st.session_state.saved_question = user_question
+st.markdown(
+    """
+    <div class="rai-nav">
+        <div class="rai-brand">
+            <div class="mark"><i class="fa-solid fa-scale-balanced"></i></div>
+            <div class="name">Amicus</div>
+        </div>
+        <div class="rai-links">
+            <a href="#analyze">How it works</a>
+            <a href="#usecases">Use cases</a>
+            <a href="#security">Security</a>
+            <a href="#faq">FAQ</a>
+        </div>
+        <div class="rai-cta">
+            <a class="pill" href="#analyze">Analyze a document</a>
+        </div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
-tab1, tab2 = st.tabs(["Rights", "Why?"])
+st.markdown(
+    """
+    <section class="hero">
+        <div class="hero-inner">
+            <div class="glass-badge"><i class="fa-solid fa-globe"></i> Understand your rights in 65+ languages</div>
+            <h1>Your companion<br><span class="soft">in the legal world.</span></h1>
+            <p class="hero-sub">Amicus turns confusing legal documents into clear, plain-language
+            guidance — so language is never a barrier to your safety, protection, and peace of mind.</p>
+            <div class="hero-stats">
+                <div class="stat"><span class="n">65+</span><span class="l">Languages</span></div>
+                <div class="stat"><span class="n">20 MB</span><span class="l">PDF or photo</span></div>
+                <div class="stat"><span class="n">0</span><span class="l">Files stored</span></div>
+            </div>
+        </div>
+        <div class="marquee">
+            <div class="marquee-track">
+                <span class="chip"><i class="fa-solid fa-house-chimney"></i> Lease agreements</span>
+                <span class="chip"><i class="fa-solid fa-briefcase"></i> Employment contracts</span>
+                <span class="chip"><i class="fa-solid fa-passport"></i> Immigration forms</span>
+                <span class="chip"><i class="fa-solid fa-file-signature"></i> Terms of service</span>
+                <span class="chip"><i class="fa-solid fa-scroll"></i> Court notices</span>
+                <span class="chip"><i class="fa-solid fa-hand-holding-dollar"></i> Loan documents</span>
+                <span class="chip"><i class="fa-solid fa-house-chimney"></i> Lease agreements</span>
+                <span class="chip"><i class="fa-solid fa-briefcase"></i> Employment contracts</span>
+                <span class="chip"><i class="fa-solid fa-passport"></i> Immigration forms</span>
+                <span class="chip"><i class="fa-solid fa-file-signature"></i> Terms of service</span>
+                <span class="chip"><i class="fa-solid fa-scroll"></i> Court notices</span>
+                <span class="chip"><i class="fa-solid fa-hand-holding-dollar"></i> Loan documents</span>
+            </div>
+        </div>
+        <div class="scroll-cue"><i class="fa-solid fa-chevron-down"></i> Scroll to analyze</div>
+    </section>
+    """,
+    unsafe_allow_html=True,
+)
+
+user_question = st.chat_input("Ask a question about your document…")
+if user_question:
+    st.session_state.saved_question = user_question
+
+tab1, tab2 = st.tabs(["Analyze", "About us"])
 
 with tab1:
-  
-  st.title("_Rights AI_. Your companion in the :yellow[legal] world.")
-  st.markdown("Empowering you to understand your documents, one upload at a time.")
- 
-  st.divider()
-  user_language = st.selectbox(
-        "What is your preferred language?",
-        ("English", "Spanish (Español)", "French (Français)", "Chinese (中文)", "Arabic (العربية)", "Russian (Русский)", "Portuguese (Português)", "Hindi (हिन्दी)", "Bengali (বাংলা)", "Japanese (日本語)", "German (Deutsch)", "Korean (한국어)", "Italian (Italiano)", "Dutch (Nederlands)", "Turkish (Türkçe)", "Vietnamese (Tiếng Việt)", "Polish (Polski)", "Ukrainian (Українська)", "Persian (فارسی)", "Romanian (Română)", "Greek (Ελληνικά)", "Czech (Čeština)", "Swedish (Svenska)", "Hungarian (Magyar)", "Finnish (Suomi)", "Danish (Dansk)", "Norwegian (Norsk)")
+    st.markdown('<div id="analyze"></div>', unsafe_allow_html=True)
+
+    with st.container(border=True):
+        head_left, head_right = st.columns([1.4, 1], vertical_alignment="center")
+        with head_left:
+            st.markdown(
+                """
+                <div class="card-head">
+                    <div class="icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                    <div class="t">Plain-language analysis</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with head_right:
+            user_language = st.selectbox(
+                "Your preferred language",
+                (
+                    "English", "Spanish (Español)", "French (Français)", "Chinese (中文)",
+                    "Arabic (العربية)", "Russian (Русский)", "Portuguese (Português)",
+                    "Hindi (हिन्दी)", "Bengali (বাংলা)", "Japanese (日本語)", "German (Deutsch)",
+                    "Korean (한국어)", "Italian (Italiano)", "Dutch (Nederlands)", "Turkish (Türkçe)",
+                    "Vietnamese (Tiếng Việt)", "Polish (Polski)", "Ukrainian (Українська)",
+                    "Romanian (Română)", "Greek (Ελληνικά)", "Czech (Čeština)", "Swedish (Svenska)",
+                    "Hungarian (Magyar)", "Finnish (Suomi)", "Dansk (Danish)", "Norwegian (Norsk)",
+                    "Catalan (Català)", "Indonesian (Bahasa Indonesia)", "Malay (Bahasa Melayu)",
+                    "Thai (ไทย)", "Hebrew (עברית)", "Bulgarian (Български)", "Croatian (Hrvatski)",
+                    "Estonian (Eesti)", "Gujarati (ગુજરાતી)", "Kannada (ಕನ್ನಡ)", "Latvian (Latviešu)",
+                    "Lithuanian (Lietuvių)", "Malayalam (മലയാളം)", "Marathi (मराठी)",
+                    "Slovak (Slovenčina)", "Slovenian (Slovenščina)", "Swahili (Kiswahili)",
+                    "Tamil (தமிழ்)", "Telugu (తెలుగు)", "Urdu (اردو)", "Serbian (Српски)",
+                    "Filipino (Filipino)", "Icelandic (Íslenska)", "Amharic (አማርኛ)",
+                    "Armenian (Հայերեն)", "Azerbaijani (Azərbaycan dili)", "Basque (Euskara)",
+                    "Galician (Galego)", "Georgian (ქართული)", "Kazakh (Қазақ тілі)",
+                    "Khmer (ខ្មែរ)", "Lao (ລາວ)", "Macedonian (Македонски)", "Mongolian (Монгол)",
+                    "Nepali (नेपाली)", "Sinhala (සිංහල)", "Albanian (Shqip)", "Bosnian (Bosanski)",
+                    "Uzbek (Oʻzbekcha)", "Zulu (isiZulu)", "Afrikaans (Afrikaans)",
+                ),
+                label_visibility="collapsed",
+            )
+
+        uploaded_pdf = st.file_uploader(
+            "Drop your legal document here",
+            type="pdf",
+            help="PDF up to 20 MB. Your file is analyzed in real time and never stored.",
         )
-  st.divider()
-  if user_language:
-        st.session_state.saved_question = user_language
 
-  with st.container():
-      st.header("Analyze a :yellow[Document]")
-      uploaded_pdf = st.file_uploader("Upload your legal document (PDF)", type="pdf")
-     
-      if uploaded_pdf is not None:
-         with st.spinner("Extracting text..."):
-            document_info = extract_pdf(uploaded_pdf)   
-         if document_info.strip():
-            with st.spinner("Analyzing the document..."):
-               document_analysis = analyze_document(document_info, user_question, user_language)
-               st.success("Analysis Complete")
-               st.markdown(document_analysis)
-         else:
-            st.error("No readable text found in this PDF.")
+        if uploaded_pdf is not None:
+            with st.spinner("Extracting text…"):
+                document_info = extract_pdf(uploaded_pdf)
+            if document_info and document_info.strip():
+                with st.spinner("Analyzing the document…"):
+                    document_analysis = analyze_document(
+                        document_info, st.session_state.saved_question, user_language
+                    )
+                    st.success("Analysis complete")
+                    st.markdown(document_analysis)
+            else:
+                st.error("No readable text found in this PDF.")
 
+        st.markdown('<div class="or-divider">or</div>', unsafe_allow_html=True)
 
-  st.subheader("OR")
-  def open_camera():
-     st.session_state.show_camera = True
+        def open_camera():
+            st.session_state.show_camera = True
 
+        left_col, center_col, right_col = st.columns([1, 2, 1])
+        
+        with center_col:
+            st.button(
+                "Take a photo of your document",
+                on_click=open_camera,
+                type="primary",
+                use_container_width=True)
 
-  st.button("Take a picture of your legal document", on_click=open_camera, type="primary")
+        if st.session_state.show_camera:
+            uploaded_camera_image = st.camera_input("Capture your document")
+            if uploaded_camera_image is not None:
+                with st.spinner("Extracting text…"):
+                    document_info = extract_text_from_image(uploaded_camera_image)
+                if document_info and document_info.strip():
+                    with st.spinner("Analyzing the document…"):
+                        image_analysis = analyze_document(
+                            document_info, st.session_state.saved_question, user_language
+                        )
+                        st.success("Analysis complete")
+                        st.markdown(image_analysis)
+                else:
+                    st.error("No readable text found in this image.")
 
+    st.markdown(
+        """
+        <div id="security"></div>
+        <div class="trust-pill">
+            <i class="fa-solid fa-shield-halved"></i>
+            <span><b>Bank-grade encryption</b> · documents deleted after analysis</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-  if st.session_state.show_camera:
-     uploaded_camera_image = st.camera_input("Capture your document")
-     if uploaded_camera_image is not None:
-        with st.spinner("Extracting text..."):
-           document_info = extract_text_from_image(uploaded_camera_image)
-        if document_info.strip():
-           with st.spinner("Analyzing the document..."):
-              image_analysis = analyze_document(document_info, user_question, user_language)
-              st.success("Analysis Complete")
-              st.markdown(image_analysis)
-        else:
-           st.error("No readable text found in this Image")
+    st.markdown(
+        """
+        <div id="usecases" class="rai-section">
+            <div class="eyebrow">Use cases</div>
+            <div class="sec-title">Not sure where to start?</div>
+            <div class="sec-sub">Upload or snap a photo of any of these to see plain-language guidance.</div>
+            <div class="uc-grid">
+                <div class="uc-card">
+                    <div class="uc-ic"><i class="fa-solid fa-house-chimney"></i></div>
+                    <h4>Lease agreements</h4>
+                    <p>Understand your renting rights, deposit terms, and hidden fees.</p>
+                </div>
+                <div class="uc-card">
+                    <div class="uc-ic"><i class="fa-solid fa-briefcase"></i></div>
+                    <h4>Employment contracts</h4>
+                    <p>Decode non-competes, termination clauses, and benefits.</p>
+                </div>
+                <div class="uc-card">
+                    <div class="uc-ic"><i class="fa-solid fa-passport"></i></div>
+                    <h4>Immigration forms</h4>
+                    <p>Clarify confusing government jargon and your next steps.</p>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-st.write("---") # Adds a visual divider
-  
-st.markdown(
-      """
-      <div style='text-align: center; color: #64748B; margin-bottom: 2rem;'>
-          <i class="fa-solid fa-shield-halved"></i> <b>Bank-Grade Security:</b> Your documents are processed securely and are never stored or shared.
-      </div>
-      """, 
-      unsafe_allow_html=True
-  )
+    st.markdown(
+        """
+        <div id="faq" class="rai-section">
+            <div class="eyebrow">FAQ</div>
+            <div class="sec-title">Frequently asked questions</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-st.subheader("Not sure where to start?")
-st.markdown("Try uploading or snapping a picture of:")
-  
-colA, colB, colC = st.columns(3)
-with colA:
-      st.info("**Lease Agreements**\n\nUnderstand your renting rights, deposit terms, and hidden fees.")
-with colB:
-      st.info("**Employment Contracts**\n\nDecode non-competes, termination clauses, and benefits.")
-with colC:
-      st.info("**Immigration Forms**\n\nClarify confusing government jargon and next steps.")
+    with st.expander("How accurate is the AI analysis?"):
+        st.write(
+            "Our AI is trained on vast amounts of legal data to provide accurate summaries. "
+            "However, it is an informational companion, not a replacement for a certified lawyer."
+        )
+    with st.expander("Do you save my legal documents?"):
+        st.write(
+            "No. Your privacy is our top priority. Documents are analyzed in real time and "
+            "immediately deleted from our servers once the analysis is complete."
+        )
+    with st.expander("What languages are supported?"):
+        st.write(
+            "We currently support over 65 languages. Just select your preferred language "
+            "from the dropdown above."
+        )
 
-st.write("---")
+    st.markdown(
+        """
+        <div class="site-footer">
+            © 2026 Amicus. All rights reserved.<br>
+            <i>Disclaimer: Amicus provides informational insights and does not constitute official legal advice.</i>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
-
-st.subheader("Frequently Asked Questions")
-  
-with st.expander("How accurate is the AI analysis?"):
-   st.write("Our AI is trained on vast amounts of legal data to provide accurate summaries. However, it is an informational companion, not a replacement for a certified lawyer.")
-      
-with st.expander("Do you save my legal documents?"):
-   st.write("No. Your privacy is our top priority. Documents are analyzed in real-time and immediately deleted from our servers once the analysis is complete.")
-      
-with st.expander("What languages are supported?"):
-   st.write("We currently support over 25 languages! Just select your preferred language from the dropdown at the top of the page.")
-
-st.markdown(
-      """
-      <div style='text-align: center; color: #94A3B8; font-size: 0.8rem; margin-top: 4rem; margin-bottom: 2rem;'>
-          © 2026 Rights AI. All rights reserved. <br>
-          <i>Disclaimer: Rights AI provides informational insights and does not constitute official legal advice.</i>
-      </div>
-      """, 
-      unsafe_allow_html=True
-  )
- 
 with tab2:
-  st.header("About Us")
-  st.divider()
- 
-  col1, col2 = st.columns([1, 1.2], gap="large")
- 
-  with col1:
-      st.image("https://cis.org/sites/default/files/2024-05/Foreign-born-number-percent-social.png", use_container_width=True)
-     
-  with col2:
-      st.markdown("""
-      **Navigating the American legal system can be overwhelming**, especially when language barriers stand in the way of justice.
-     
-      For over 25 million U.S. residents with Limited English Proficiency, a simple misunderstanding of legal documents or complex political jargon can lead to unintended legal trouble and compromised due process.
-     
-      Our platform bridges this critical gap by empowering you to:
-      * **Fully understand** your rights.
-      * **Easily decode** complicated legal language.
-      * **Confidently plan** your next steps.
-     
-      No matter your background, we are here to ensure that language is never a barrier to your safety, protection, and peace of mind.
-      """)
+    st.markdown(
+        """
+        <div class="rai-section" style="margin-top:1.4rem;">
+            <div class="eyebrow">Our mission</div>
+            <div class="sec-title">Language should never stand between you and justice.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
+    st.markdown(
+        """
+        Navigating the American legal system can be overwhelming, especially when
+        language barriers stand in the way of justice.
+
+        For residents with Limited English Proficiency, a simple misunderstanding of
+        legal documents or complex political jargon can lead to unintended legal trouble
+        and compromised due process.
+
+        Our platform bridges this critical gap by empowering you to:
+        * **Fully understand** your rights.
+        * **Easily decode** complicated legal language.
+        * **Confidently plan** your next steps.
+        """
+    )

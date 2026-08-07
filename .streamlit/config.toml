@@ -1,8 +1,14 @@
 [theme]
-primaryColor = "#091b4a"
-backgroundColor = "#FFFFFF"
-secondaryBackgroundColor = "#ffffff"
-textColor = "#0F172A"
+base = "light"
+primaryColor = "#16305C"
+backgroundColor = "#FCFAF5"
+secondaryBackgroundColor = "#F3EFE6"
+textColor = "#0F1D38"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"
+
 
 [server]
 address = "0.0.0.0"

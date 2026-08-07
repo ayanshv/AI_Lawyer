@@ -1,5 +1,8 @@
 import streamlit as st
 import streamlit.components.v1 as components
+from PIL import Image
+
+icon_image = Image.open("AmicusIcon.png")
 
 try:
     from pdf_reader import extract_pdf
@@ -24,6 +27,7 @@ st.set_page_config(
     page_title="Amicus — Understand any legal document",
     layout="centered",
     initial_sidebar_state="collapsed",
+    page_icon=icon_image,
 )
 
 if "show_camera" not in st.session_state:
@@ -453,12 +457,9 @@ st.markdown(
 st.markdown(
     """
     <div class="rai-nav">
-        <div class="rai-brand" onclick="window.parent.postMessage('go_home', '*');">
-            <div class="mark"><i class="fa-solid fa-scale-balanced"></i></div>
+        <div class="rai-brand" onclick="window.parent.postMessage('go_home', '*');" style="cursor: pointer;">
+            <img src="app/static/AmicusIcon.png" style="width: 38px; height: 38px; border-radius: 12px; object-fit: cover;" />
             <div class="name">Amicus</div>
-        </div>
-        <div class="rai-mobile-right">
-            <i class="fa-solid fa-earth-americas"></i>
         </div>
     </div>
     """,
@@ -550,18 +551,18 @@ elif st.session_state.current_page == "analyze":
         if not _BACKEND_AVAILABLE:
             st.error("Backend modules failed to load. Analysis will not be available.", icon="⚠️")
 
-        with st.container(border=True):
-            head_left, head_right = st.columns([1.4, 1], vertical_alignment="center")
-            with head_left:
-                st.markdown(
-                    """
-                    <div class="card-head">
-                        <div class="icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                        <div class="t">Plain-language analysis</div>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+    with st.container(border=True):
+        head_left, head_right = st.columns([1.4, 1], vertical_alignment="center")
+        with head_left:
+            st.markdown(
+                """
+                <div class="card-head">
+                    <img src="app/static/AmicusIcon.png" style="width: 44px; height: 44px; border-radius: 14px; object-fit: cover;" />
+                    <div class="t">Plain-language analysis</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             with head_right:
                 user_language = st.selectbox(
                     "Your preferred language",

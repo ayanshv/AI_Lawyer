@@ -645,11 +645,11 @@ elif st.session_state.current_page == "analyze":
                     else:
                         st.success("Photo scanned! Ask a question below to analyze it.", icon="✅")
 
-            if "user_question" in locals() and user_question and st.session_state.extracted_text:
+            if st.session_state.saved_question and st.session_state.extracted_text:
                 with st.spinner("Analyzing the document…"):
                     result = analyze_document(
                         st.session_state.extracted_text, 
-                        user_question, 
+                        st.session_state.saved_question, 
                         user_language
                     )
                     st.session_state.analysis_result = result

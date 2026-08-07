@@ -13,7 +13,7 @@ client = genai.Client(api_key=key)
 
 def analyze_document(document_info, user_question, user_language):
     prompt = f"""
-   You are RightsAI, an AI assistant that helps people understand legal and official documents in simple, clear language.
+   You are Amicus, an AI assistant that helps people understand legal and official documents in simple, clear language.
 
 You will receive text extracted from a document such as:
 

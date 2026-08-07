@@ -603,13 +603,12 @@ elif st.session_state.current_page == "analyze":
             )
 
             if uploaded_pdf is not None:
-                    with st.spinner("Extracting text…"):
+                    with st.spinner("Analyzing Document…"):
                         text = extract_pdf(uploaded_pdf)
                         if text and text.strip():
-                            with st.spinner("Analyzing the document…"):
-                                result = analyze_document(text, st.session_state.saved_question, user_language)
-                                st.success("Analysis complete!")
-                                st.markdown(result)
+                            result = analyze_document(text, st.session_state.saved_question, user_language)
+                            st.success("Analysis complete!")
+                            st.markdown(result)
                         else:
                             st.error("No readable text found in this PDF. Please ensure it is a real PDF")
 
@@ -630,13 +629,12 @@ elif st.session_state.current_page == "analyze":
             if st.session_state.show_camera:
                 uploaded_camera_image = st.camera_input("Capture your document")
                 if uploaded_camera_image is not None:
-                    with st.spinner("Extracting text from the image…"):
+                    with st.spinner("Analyzing Document…"):
                         text = extract_text_from_image(uploaded_camera_image)
                         if text and text.strip():
-                            with st.spinner("Analyzing the document..."):
-                                image_analysis = analyze_document(text, st.session_state.saved_question, user_language)
-                                st.success("Analysis complete!")
-                                st.markdown(image_analysis)
+                            image_analysis = analyze_document(text, st.session_state.saved_question, user_language)
+                            st.success("Analysis complete!")
+                            st.markdown(image_analysis)
                         else:
                             st.error("No readable text found in the image. Please ensure the document is clear and well-lit.")
 

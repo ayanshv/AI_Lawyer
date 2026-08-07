@@ -3,13 +3,6 @@ import streamlit.components.v1 as components
 from PIL import Image
 import base64
 
-def get_base64_image(image_path):
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
-
-icon_base64 = get_base64_image("AmicusIcon.png")
-icon_src = f"data:image/png;base64,{icon_base64}"
-
 try:
     from pdf_reader import extract_pdf
     from analyze import analyze_document
@@ -28,12 +21,21 @@ except ImportError:
     def extract_text_from_image(_image):
         return ""
 
+def get_base64_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+icon_base64 = get_base64_image("AmicusIcon.png")
+icon_src = f"data:image/png;base64,{icon_base64}"
+
+
+
 
 st.set_page_config(
     page_title="Amicus — Understand any legal document",
     layout="centered",
     initial_sidebar_state="collapsed",
-    page_icon="AmicusIcon.png",
+    page_icon=Image.open("AmicusIcon.png"),
 )
 
 if "show_camera" not in st.session_state:
@@ -569,10 +571,10 @@ elif st.session_state.current_page == "analyze":
                     """,
                     unsafe_allow_html=True,
                 )
-            with head_right:
-                user_language = st.selectbox(
-                    "Your preferred language",
-                    (
+        with head_right:
+            user_language = st.selectbox(
+                "Your preferred language",
+                (
                         "English", "Spanish (Español)", "French (Français)", "Chinese (中文)",
                         "Arabic (العربية)", "Russian (Русский)", "Portuguese (Português)",
                         "Hindi (हिन्दी)", "Bengali (বাংলা)", "Japanese (日本語)", "German (Deutsch)",

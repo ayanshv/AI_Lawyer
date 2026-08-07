@@ -394,9 +394,9 @@ st.markdown(
         }
 
         .hero { 
-            padding: 1.6rem 1rem 1.4rem !important; 
-            border-radius: 20px !important; 
-            margin: 0 auto 1rem !important;
+            padding: 2rem 1rem 2rem !important; 
+            border-radius: 24px !important; 
+            margin: 0 auto 0.5rem !important; 
         }
         .hero h1 { font-size: 1.75rem !important; margin: 0 0 0.6rem !important; }
         .hero-sub { font-size: 0.85rem !important; margin: 0 auto 1rem !important; line-height: 1.4 !important; }

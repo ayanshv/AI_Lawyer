@@ -416,7 +416,7 @@ st.markdown(
         .chip { padding: 6px 12px !important; font-size: 0.8rem !important; }
 
         [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 1.2rem 1rem !important;
+            padding: 2.5rem 1.2rem 2.5rem !important;
             border-radius: 24px !important;
         }
         .card-head .t { font-size: 1.2rem !important; }

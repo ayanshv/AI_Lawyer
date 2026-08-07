@@ -1,8 +1,14 @@
 import streamlit as st
 import streamlit.components.v1 as components
 from PIL import Image
+import base64
 
-icon_image = Image.open("AmicusIcon.png")
+def get_base64_image(image_path):
+    with open(image_path, "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode()
+
+icon_base64 = get_base64_image("AmicusIcon.png")
+icon_src = f"data:image/png;base64,{icon_base64}"
 
 try:
     from pdf_reader import extract_pdf
@@ -27,7 +33,7 @@ st.set_page_config(
     page_title="Amicus — Understand any legal document",
     layout="centered",
     initial_sidebar_state="collapsed",
-    page_icon=icon_image,
+    page_icon="AmicusIcon.png",
 )
 
 if "show_camera" not in st.session_state:
@@ -453,12 +459,12 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Custom Navigation Bar with Streamlit Buttons
+
 st.markdown(
-    """
+    f"""
     <div class="rai-nav">
         <div class="rai-brand" onclick="window.parent.postMessage('go_home', '*');" style="cursor: pointer;">
-            <img src="app/static/AmicusIcon.png" style="width: 38px; height: 38px; border-radius: 12px; object-fit: cover;" />
+            <img src="{icon_src}" style="width: 38px; height: 38px; border-radius: 12px; object-fit: cover;" />
             <div class="name">Amicus</div>
         </div>
     </div>
@@ -555,14 +561,14 @@ elif st.session_state.current_page == "analyze":
         head_left, head_right = st.columns([1.4, 1], vertical_alignment="center")
         with head_left:
             st.markdown(
-                """
-                <div class="card-head">
-                    <img src="app/static/AmicusIcon.png" style="width: 44px; height: 44px; border-radius: 14px; object-fit: cover;" />
-                    <div class="t">Plain-language analysis</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+                    f"""
+                    <div class="card-head">
+                        <img src="{icon_src}" style="width: 44px; height: 44px; border-radius: 14px; object-fit: cover;" />
+                        <div class="t">Plain-language analysis</div>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
             with head_right:
                 user_language = st.selectbox(
                     "Your preferred language",

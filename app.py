@@ -33,7 +33,7 @@ st.set_page_config(
     page_title="Amicus — Understand any legal document",
     layout="centered",
     initial_sidebar_state="collapsed",
-    page_icon=Image.open("AmicusIcon.png"),
+    page_icon="https://github.com/ayanshv/Amicus/blob/main/AmicusIcon.png?raw=true",
 )
 
 if "show_camera" not in st.session_state:

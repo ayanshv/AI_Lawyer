@@ -416,8 +416,8 @@ st.markdown(
         .chip { padding: 6px 12px !important; font-size: 0.8rem !important; }
 
         [data-testid="stVerticalBlockBorderWrapper"] {
-            padding: 2.5rem 1.2rem 2.5rem !important;
-            border-radius: 24px !important;
+            padding: 1.2rem 1rem 1rem !important; 
+            border-radius: 28px !important;
         }
         .card-head .t { font-size: 1.2rem !important; }
         [data-testid="stFileUploaderDropzone"], 
@@ -456,12 +456,12 @@ if st.session_state.current_page == "analyze":
 # SCREEN 1: THE HOME PAGE
 # ==========================================
 if st.session_state.current_page == "home":
-    st.markdown(
-        """
-        <section class="hero">
-            <div class="hero-inner">
+    with st.container(border=True):
+        st.markdown(
+            """
+            <div class="hero-inner" style="text-align: center;">
                 <div class="glass-badge"><i class="fa-solid fa-globe"></i> Understand your rights in 65+ languages</div>
-                <h1>Your companion<br><span class="soft">in the legal world.</span></h1>
+                <h1 class="hero-title">Your companion<br><span class="soft">in the legal world.</span></h1>
                 <p class="hero-sub">Amicus turns confusing legal documents into clear, plain-language guidance — so language is never a barrier.</p>
                 <div class="hero-stats">
                     <div class="stat"><span class="n">65+</span><span class="l">Languages</span></div>
@@ -477,25 +477,23 @@ if st.session_state.current_page == "home":
                     <span class="chip"><i class="fa-solid fa-file-signature"></i> Terms of service</span>
                 </div>
             </div>
-        </section>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    col1, col2, col3 = st.columns([0.5, 3, 0.5])
-    with col2:
-        st.button(
-            "Go to Analysis Tool →", 
-            on_click=go_to_analyze, 
-            type="primary", 
-            use_container_width=True
-        )
-        st.button(
-            "Use Cases & FAQ", 
-            on_click=go_to_info, 
-            use_container_width=True
+            """,
+            unsafe_allow_html=True,
         )
 
+        col1, col2, col3 = st.columns([0.5, 3, 0.5])
+        with col2:
+            st.button(
+                "Go to Analysis Tool →", 
+                on_click=go_to_analyze, 
+                type="primary", 
+                use_container_width=True
+            )
+            st.button(
+                "Use Cases & FAQ", 
+                on_click=go_to_info, 
+                use_container_width=True
+            )
     st.markdown(
         """
         <div class="site-footer">

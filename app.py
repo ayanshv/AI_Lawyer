@@ -378,43 +378,56 @@ st.markdown(
         display: none !important;
     }
 
+    
+    /* --- HIDE GLOBE ON DESKTOP --- */
+    .rai-mobile-right { display: none; }
+
     /* TIGHTER MOBILE OPTIMIZATION */
     @media (max-width: 640px) {
-        .rai-nav {
-            padding: 4px 10px !important;
-            top: 6px !important;
-            width: calc(100% - 16px) !important;
+        /* 1. Make the Top Bar Taller & Add the Globe */
+        .rai-nav { 
+            padding: 12px 18px !important; 
+            top: 12px !important; 
+            width: calc(100% - 24px) !important; 
+            justify-content: space-between !important;
         }
-        .rai-brand .mark { width: 28px !important; height: 28px !important; font-size: 0.75rem !important; }
-        .rai-brand .name { font-size: 0.95rem !important; }
-
-        .block-container {
-            padding-top: 4.2rem !important;
-            padding-bottom: 4rem !important;
+        .rai-brand .mark { width: 34px !important; height: 34px !important; font-size: 0.9rem !important; }
+        .rai-brand .name { font-size: 1.15rem !important; }
+        
+        .rai-mobile-right { 
+            display: flex; 
+            align-items: center; 
+            color: var(--slate); 
+            font-size: 1.1rem; 
         }
 
+        /* 2. Kill the Extra Scroll Space */
+        .block-container { 
+            padding-top: 5.5rem !important; 
+            padding-bottom: 0.5rem !important; 
+        }
+        .site-footer { margin-top: 1.5rem !important; } 
+        
         .hero { 
             padding: 2rem 1rem 2rem !important; 
             border-radius: 24px !important; 
             margin: 0 auto 0.5rem !important; 
         }
-        .hero h1 { font-size: 1.75rem !important; margin: 0 0 0.6rem !important; }
-        .hero-sub { font-size: 0.85rem !important; margin: 0 auto 1rem !important; line-height: 1.4 !important; }
+        .hero h1 { font-family: 'Fraunces', serif !important; font-size: 1.9rem !important; margin: 0 0 0.5rem !important; }
+        .hero-sub { font-family: 'Plus Jakarta Sans', sans-serif !important; font-size: 0.9rem !important; margin: 0 auto 1rem !important; line-height: 1.4 !important; }
         .glass-badge { margin-bottom: 0.8rem !important; padding: 5px 12px !important; font-size: 0.75rem !important; }
 
-        .hero-stats {
-            display: grid !important;
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 6px !important;
-            margin-top: 0.2rem !important;
-        }
+        .hero-stats { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 6px !important; }
         .stat { min-width: unset !important; padding: 8px 4px !important; border-radius: 14px !important; }
         .stat .n { font-size: 1.1rem !important; }
         .stat .l { font-size: 0.6rem !important; }
 
-        .marquee { margin: 1rem 0 0 !important; }
+        .stButton > button { padding: 0.75rem 1rem !important; font-size: 1rem !important; min-width: 240px !important; }
+        
+        .marquee { margin: 0.5rem 0 0 !important; }
         .chip { padding: 6px 12px !important; font-size: 0.8rem !important; }
 
+        /* THESE MUST BE INSIDE THE MEDIA QUERY! */
         [data-testid="stVerticalBlockBorderWrapper"] {
             padding: 1.2rem 1rem 1rem !important; 
             border-radius: 28px !important;
@@ -426,8 +439,10 @@ st.markdown(
             padding: 1.2rem 1rem !important;
         }
         [data-testid="stFileUploaderDropzoneInstructions"] span,
-        [data-testid="stFileDropzoneInstructions"] span { font-size: 1.15rem !important; }
-    }
+        [data-testid="stFileDropzoneInstructions"] span { 
+            font-size: 1.15rem !important; 
+        } 
+    } 
     </style>
     """,
     unsafe_allow_html=True,
@@ -440,6 +455,9 @@ st.markdown(
         <div class="rai-brand" onclick="window.parent.postMessage('go_home', '*');">
             <div class="mark"><i class="fa-solid fa-scale-balanced"></i></div>
             <div class="name">Amicus</div>
+        </div>
+        <div class="rai-mobile-right">
+            <i class="fa-solid fa-earth-americas"></i>
         </div>
     </div>
     """,

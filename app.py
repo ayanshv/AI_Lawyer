@@ -603,17 +603,15 @@ elif st.session_state.current_page == "analyze":
             )
 
             if uploaded_pdf is not None:
-                if st.session_state.processed_file_id != uploaded_pdf.file_id:
                     with st.spinner("Extracting text…"):
                         text = extract_pdf(uploaded_pdf)
-                        st.session_state.extracted_text = text
-                        st.session_state.processed_file_id = uploaded_pdf.file_id
-                        st.session_state.analysis_result = ""
-                
-                if not st.session_state.extracted_text.strip():
-                    st.error("No readable text found in this PDF. Please try another document.")
-                else:
-                    st.success("Document scanned! Ask a question below to analyze it.", icon="✅")
+                        if text and text.strip():
+                            with st.spinner("Analyzing the document…"):
+                                result = analyze_document(text, st.session_state.saved_question, user_language)
+                                st.success("Analysis complete!")
+                                st.markdown(result)
+                        else:
+                            st.error("No readable text found in this PDF. Please ensure it is a real PDF")
 
             st.markdown('<div class="or-divider">or</div>', unsafe_allow_html=True)
 
@@ -632,31 +630,15 @@ elif st.session_state.current_page == "analyze":
             if st.session_state.show_camera:
                 uploaded_camera_image = st.camera_input("Capture your document")
                 if uploaded_camera_image is not None:
-                    camera_id = hash(uploaded_camera_image.getvalue())
-                    if st.session_state.processed_file_id != camera_id:
-                        with st.spinner("Extracting text…"):
-                            text = extract_text_from_image(uploaded_camera_image)
-                            st.session_state.extracted_text = text
-                            st.session_state.processed_file_id = camera_id
-                            st.session_state.analysis_result = ""
-                    
-                    if not st.session_state.extracted_text.strip():
-                        st.error("No readable text found in this image. Please ensure it is well-lit.")
-                    else:
-                        st.success("Photo scanned! Ask a question below to analyze it.", icon="✅")
-
-            if st.session_state.saved_question and st.session_state.extracted_text:
-                with st.spinner("Analyzing the document…"):
-                    result = analyze_document(
-                        st.session_state.extracted_text, 
-                        st.session_state.saved_question, 
-                        user_language
-                    )
-                    st.session_state.analysis_result = result
-                    
-            if st.session_state.analysis_result:
-                st.markdown("### Analysis")
-                st.info(st.session_state.analysis_result)
+                    with st.spinner("Extracting text from the image…"):
+                        text = extract_text_from_image(uploaded_camera_image)
+                        if text and text.strip():
+                            with st.spinner("Analyzing the document..."):
+                                image_analysis = analyze_document(text, st.session_state.saved_question, user_language)
+                                st.success("Analysis complete!")
+                                st.markdown(image_analysis)
+                        else:
+                            st.error("No readable text found in the image. Please ensure the document is clear and well-lit.")
 
             st.markdown(
                 """

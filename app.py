@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 
 try:
     from pdf_reader import extract_pdf
@@ -529,15 +530,16 @@ if st.session_state.current_page == "home":
 # ==========================================
 elif st.session_state.current_page == "analyze":
     st.button("← Back to Home", on_click=go_to_home)
-    st.markdown(
+    components.html(
         """
         <script>
-            setTimeout(function() {
-                window.scrollTo({ top: 0, behavior: 'instant' });
-            }, 50);
+            var mainContainer = window.parent.document.querySelector('.main');
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
+            }
         </script>
         """,
-        unsafe_allow_html=True,
+        height=0
     )
 
     tab1, tab2 = st.tabs(["Analyze", "About us"])

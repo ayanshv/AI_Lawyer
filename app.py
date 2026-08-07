@@ -29,8 +29,6 @@ icon_base64 = get_base64_image("AmicusIcon.png")
 icon_src = f"data:image/png;base64,{icon_base64}"
 
 
-
-
 st.set_page_config(
     page_title="Amicus — Understand any legal document",
     layout="centered",
@@ -559,10 +557,10 @@ elif st.session_state.current_page == "analyze":
         if not _BACKEND_AVAILABLE:
             st.error("Backend modules failed to load. Analysis will not be available.", icon="⚠️")
 
-    with st.container(border=True):
-        head_left, head_right = st.columns([1.4, 1], vertical_alignment="center")
-        with head_left:
-            st.markdown(
+        with st.container(border=True):
+            head_left, head_right = st.columns([1.4, 1], vertical_alignment="center")
+            with head_left:
+                st.markdown(
                     f"""
                     <div class="card-head">
                         <img src="{icon_src}" style="width: 44px; height: 44px; border-radius: 14px; object-fit: cover;" />
@@ -571,10 +569,10 @@ elif st.session_state.current_page == "analyze":
                     """,
                     unsafe_allow_html=True,
                 )
-        with head_right:
-            user_language = st.selectbox(
-                "Your preferred language",
-                (
+            with head_right:
+                user_language = st.selectbox(
+                    "Your preferred language",
+                    (
                         "English", "Spanish (Español)", "French (Français)", "Chinese (中文)",
                         "Arabic (العربية)", "Russian (Русский)", "Portuguese (Português)",
                         "Hindi (हिन्दी)", "Bengali (বাংলা)", "Japanese (日本語)", "German (Deutsch)",
@@ -647,39 +645,39 @@ elif st.session_state.current_page == "analyze":
                     else:
                         st.success("Photo scanned! Ask a question below to analyze it.", icon="✅")
 
-        if "user_question" in locals() and user_question and st.session_state.extracted_text:
-            with st.spinner("Analyzing the document…"):
-                result = analyze_document(
-                    st.session_state.extracted_text, 
-                    user_question, 
-                    user_language
-                )
-                st.session_state.analysis_result = result
-                
-        if st.session_state.analysis_result:
-            st.markdown("### Analysis")
-            st.info(st.session_state.analysis_result)
+            if "user_question" in locals() and user_question and st.session_state.extracted_text:
+                with st.spinner("Analyzing the document…"):
+                    result = analyze_document(
+                        st.session_state.extracted_text, 
+                        user_question, 
+                        user_language
+                    )
+                    st.session_state.analysis_result = result
+                    
+            if st.session_state.analysis_result:
+                st.markdown("### Analysis")
+                st.info(st.session_state.analysis_result)
 
-        st.markdown(
-            """
-            <div id="security"></div>
-            <div class="trust-pill">
-                <i class="fa-solid fa-shield-halved"></i>
-                <span><b>Bank-grade encryption</b> · documents deleted after analysis</span>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                """
+                <div id="security"></div>
+                <div class="trust-pill">
+                    <i class="fa-solid fa-shield-halved"></i>
+                    <span><b>Bank-grade encryption</b> · documents deleted after analysis</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-        st.markdown(
-            """
-            <div class="site-footer">
-                © 2026 Amicus. All rights reserved.<br>
-                <i>Disclaimer: Amicus provides informational insights and does not constitute official legal advice.</i>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+            st.markdown(
+                """
+                <div class="site-footer">
+                    © 2026 Amicus. All rights reserved.<br>
+                    <i>Disclaimer: Amicus provides informational insights and does not constitute official legal advice.</i>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
     with tab2:
         st.markdown(

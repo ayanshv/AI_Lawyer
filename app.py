@@ -44,6 +44,9 @@ def go_to_analyze():
 def go_to_home():
     st.session_state.current_page = "home"
 
+def go_to_info():
+    st.session_state.current_page = "info"
+
 st.markdown(
     """
     <style>
@@ -116,7 +119,7 @@ st.markdown(
         border: 1px solid var(--glass-border);
         box-shadow: var(--glass-shadow), var(--glass-hi);
     }
-    .rai-brand { display: flex; align-items: center; gap: 12px; }
+    .rai-brand { display: flex; align-items: center; gap: 12px; cursor: pointer; }
     .rai-brand .mark {
         width: 38px; height: 38px; border-radius: 12px;
         background: linear-gradient(150deg, var(--accent), #bf9a55);
@@ -124,20 +127,7 @@ st.markdown(
         box-shadow: 0 12px 24px -10px rgba(231, 198, 142, 0.8), inset 0 1px 0 rgba(255,255,255,0.55);
     }
     .rai-brand .name { font-family: 'Fraunces', serif; font-weight: 700; font-size: 1.3rem; color: var(--ink); letter-spacing: -0.01em; }
-    .rai-links { display: flex; gap: 30px; }
-    .rai-links a { color: var(--slate); text-decoration: none; font-size: 0.94rem; font-weight: 600; transition: color 0.15s ease; }
-    .rai-links a:hover { color: var(--ink); }
-    .rai-cta .pill {
-        background: linear-gradient(150deg, var(--accent-2), var(--accent)); 
-        color: var(--bg);
-        text-decoration: none;
-        padding: 11px 22px; border-radius: 999px; font-weight: 800; font-size: 0.9rem;
-        box-shadow: 0 16px 30px -12px rgba(22, 48, 92, 0.4), inset 0 1px 0 rgba(255,255,255,0.2);
-        transition: transform 0.15s ease;
-    }
-    .rai-cta .pill:hover { transform: translateY(-1px); }
-    @media (max-width: 860px) { .rai-links { display: none; } }
-
+    
     .hero {
         position: relative; margin: 0.2rem auto 2.6rem; padding: 3.4rem 2rem 2.8rem;
         border-radius: 38px; text-align: center; overflow: hidden;
@@ -352,16 +342,6 @@ st.markdown(
     [data-testid="stChatInput"] button { background: linear-gradient(150deg, var(--accent-2), var(--accent)) !important; border: none !important; }
     [data-testid="stChatInput"] button svg { color: #241a06 !important; fill: #241a06 !important; }
 
-    [data-baseweb="tab-list"] { gap: 8px; background: transparent !important; border-bottom: none !important; }
-    [data-baseweb="tab"] {
-        border-radius: 999px !important; padding: 8px 20px !important;
-        background: var(--glass) !important; backdrop-filter: var(--blur);
-        border: 1px solid var(--glass-border) !important; color: var(--slate) !important;
-    }
-    [data-baseweb="tab"][aria-selected="true"] { background: var(--glass-strong) !important; color: var(--ink) !important; }
-    [data-baseweb="tab-highlight"], [data-baseweb="tab-border"] { display: none !important; }
-    [data-baseweb="tab"] p { color: inherit !important; font-weight: 700 !important; }
-
     .trust-pill {
         display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center;
         color: var(--slate); background: var(--glass); backdrop-filter: var(--blur);
@@ -388,7 +368,7 @@ st.markdown(
 
     @keyframes floatUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
     .hero, .rai-section { animation: floatUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both; }
-    @media (prefers-reduced-motion: reduce) { .hero, .rai-section, .marquee-track, .scroll-cue i, [data-testid="stAppViewContainer"]::before, .hero::before { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .hero, .rai-section, .marquee-track, [data-testid="stAppViewContainer"]::before, .hero::before { animation: none; } }
 
     .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
     [data-testid="stHeaderActionElements"] {
@@ -441,6 +421,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Custom Navigation Bar with Streamlit Buttons
 st.markdown(
     """
     <div class="rai-nav">
@@ -448,24 +429,20 @@ st.markdown(
             <div class="mark"><i class="fa-solid fa-scale-balanced"></i></div>
             <div class="name">Amicus</div>
         </div>
-        <div class="rai-links">
-            <a href="#analyze">How it works</a>
-            <a href="#usecases">Use cases</a>
-            <a href="#security">Security</a>
-            <a href="#faq">FAQ</a>
-        </div>
-        <div class="rai-cta">
-            <a class="pill" href="#analyze">Analyze a document</a>
-        </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-user_question = st.chat_input("Ask a question about your document…")
-if user_question:
-    st.session_state.saved_question = user_question
+# Handle Chat Input globally when on analyze page
+if st.session_state.current_page == "analyze":
+    user_question = st.chat_input("Ask a question about your document…")
+    if user_question:
+        st.session_state.saved_question = user_question
 
+# ==========================================
+# SCREEN 1: THE HOME PAGE
+# ==========================================
 if st.session_state.current_page == "home":
     st.markdown(
         """
@@ -511,59 +488,10 @@ if st.session_state.current_page == "home":
             type="primary", 
             use_container_width=True
         )
-
-    st.markdown(
-        """
-        <div id="usecases" class="rai-section">
-            <div class="eyebrow">Use cases</div>
-            <div class="sec-title">Not sure where to start?</div>
-            <div class="sec-sub">Upload or snap a photo of any of these to see plain-language guidance.</div>
-            <div class="uc-grid">
-                <div class="uc-card">
-                    <div class="uc-ic"><i class="fa-solid fa-house-chimney"></i></div>
-                    <h4>Lease agreements</h4>
-                    <p>Understand your renting rights, deposit terms, and hidden fees.</p>
-                </div>
-                <div class="uc-card">
-                    <div class="uc-ic"><i class="fa-solid fa-briefcase"></i></div>
-                    <h4>Employment contracts</h4>
-                    <p>Decode non-competes, termination clauses, and benefits.</p>
-                </div>
-                <div class="uc-card">
-                    <div class="uc-ic"><i class="fa-solid fa-passport"></i></div>
-                    <h4>Immigration forms</h4>
-                    <p>Clarify confusing government jargon and your next steps.</p>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        """
-        <div id="faq" class="rai-section">
-            <div class="eyebrow">FAQ</div>
-            <div class="sec-title">Frequently asked questions</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    with st.expander("How accurate is the AI analysis?"):
-        st.write(
-            "Our AI is trained on vast amounts of legal data to provide accurate summaries. "
-            "However, it is an informational companion, not a replacement for a certified lawyer."
-        )
-    with st.expander("Do you save my legal documents?"):
-        st.write(
-            "No. Your privacy is our top priority. Documents are analyzed in real time and "
-            "immediately deleted from our servers once the analysis is complete."
-        )
-    with st.expander("What languages are supported?"):
-        st.write(
-            "We currently support over 65 languages. Just select your preferred language "
-            "from the dropdown above."
+        st.button(
+            "Use Cases & FAQ", 
+            on_click=go_to_info, 
+            use_container_width=True
         )
 
     st.markdown(
@@ -576,6 +504,9 @@ if st.session_state.current_page == "home":
         unsafe_allow_html=True,
     )
 
+# ==========================================
+# SCREEN 2: THE ANALYZE TOOL
+# ==========================================
 elif st.session_state.current_page == "analyze":
     st.button("← Back to Home", on_click=go_to_home)
 
@@ -675,7 +606,7 @@ elif st.session_state.current_page == "analyze":
                     else:
                         st.success("Photo scanned! Ask a question below to analyze it.", icon="✅")
 
-        if user_question and st.session_state.extracted_text:
+        if "user_question" in locals() and user_question and st.session_state.extracted_text:
             with st.spinner("Analyzing the document…"):
                 result = analyze_document(
                     st.session_state.extracted_text, 
@@ -735,3 +666,73 @@ elif st.session_state.current_page == "analyze":
             * **Confidently plan** your next steps.
             """
         )
+
+# ==========================================
+# SCREEN 3: USE CASES & FAQ PAGE
+# ==========================================
+elif st.session_state.current_page == "info":
+    st.button("← Back to Home", on_click=go_to_home)
+
+    st.markdown(
+        """
+        <div id="usecases" class="rai-section" style="margin-top: 1rem;">
+            <div class="eyebrow">Use cases</div>
+            <div class="sec-title">Not sure where to start?</div>
+            <div class="sec-sub">Upload or snap a photo of any of these to see plain-language guidance.</div>
+            <div class="uc-grid">
+                <div class="uc-card">
+                    <div class="uc-ic"><i class="fa-solid fa-house-chimney"></i></div>
+                    <h4>Lease agreements</h4>
+                    <p>Understand your renting rights, deposit terms, and hidden fees.</p>
+                </div>
+                <div class="uc-card">
+                    <div class="uc-ic"><i class="fa-solid fa-briefcase"></i></div>
+                    <h4>Employment contracts</h4>
+                    <p>Decode non-competes, termination clauses, and benefits.</p>
+                </div>
+                <div class="uc-card">
+                    <div class="uc-ic"><i class="fa-solid fa-passport"></i></div>
+                    <h4>Immigration forms</h4>
+                    <p>Clarify confusing government jargon and your next steps.</p>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+        <div id="faq" class="rai-section">
+            <div class="eyebrow">FAQ</div>
+            <div class="sec-title">Frequently asked questions</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.expander("How accurate is the AI analysis?"):
+        st.write(
+            "Our AI is trained on vast amounts of legal data to provide accurate summaries. "
+            "However, it is an informational companion, not a replacement for a certified lawyer."
+        )
+    with st.expander("Do you save my legal documents?"):
+        st.write(
+            "No. Your privacy is our top priority. Documents are analyzed in real time and "
+            "immediately deleted from our servers once the analysis is complete."
+        )
+    with st.expander("What languages are supported?"):
+        st.write(
+            "We currently support over 65 languages. Just select your preferred language "
+            "from the dropdown above."
+        )
+
+    st.markdown(
+        """
+        <div class="site-footer">
+            © 2026 Amicus. All rights reserved.<br>
+            <i>Disclaimer: Amicus provides informational insights and does not constitute official legal advice.</i>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
